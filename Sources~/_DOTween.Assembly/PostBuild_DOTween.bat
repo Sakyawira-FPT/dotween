@@ -39,7 +39,7 @@ set CopyFromDir=%1%6%SubDir%
 set CopyToDir=%1..\..\bin.Global\%5%SubDir%
 set CopyToDirNoMeta=%1..\..\bin.Global_no_meta\%5%SubDir%
 set CopyToDirUnityTests=%1..\UnityTests.Unity4\Assets\Demigiant\%5%SubDir%
-set CopyToDirUnity5Tests=%1..\UnityTests.Unity5\Assets\Demigiant\%5%SubDir%
+set CopyToDirUnity5Tests=%1..\UnityTests.Unity5\Assets\Plugins\Demigiant\%5%SubDir%
 set CopyToDirUnity2019Tests=%1..\UnityTests.Unity2019\Assets\Demigiant\%5%SubDir%
 set CopyToDirCompatibilityTests=%1..\UnityCompatibilityTests.Unity35\Assets\Demigiant\%5%SubDir%
 set CopyToDirExtPluginsTests=%1..\ExternalPluginsTestsAndExamples.Unity5\Assets\Demigiant\%5%SubDir%
@@ -57,10 +57,10 @@ echo f | xcopy %CopyFromDir% %CopyToDirNoMeta% /Y /I /E
 :: UnityTests.Unity5
 echo ::: Exporting from %CopyFromDir% to %CopyToDirUnity5Tests%
 echo f | xcopy %CopyFromDir% %CopyToDirUnity5Tests% /Y /I /E
-exit /B
 :: UnityTests.Unity2019
 echo ::: Exporting from %CopyFromDir% to %CopyToDirUnity2019Tests%
 echo f | xcopy %CopyFromDir% %CopyToDirUnity2019Tests% /Y /I /E
+exit /B
 :: UnityTests.Unity4
 echo ::: Exporting from %CopyFromDir% to %CopyToDirUnityTests%
 echo f | xcopy %CopyFromDir% %CopyToDirUnityTests% /Y /I /E

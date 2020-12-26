@@ -180,9 +180,9 @@ namespace DG.Tweening.Core
         // Plugins that don't support From:
         // - Vector3ArrayPlugin
         // - Pro > PathPlugin, SpiralPlugin
-        internal Tweener SetFrom(T2 fromValue, bool setImmediately)
+        internal Tweener SetFrom(T2 fromValue, bool setImmediately, bool relative)
         {
-            tweenPlugin.SetFrom(this, fromValue, setImmediately);
+            tweenPlugin.SetFrom(this, fromValue, setImmediately, relative);
             hasManuallySetStartValue = true;
             return this;
         }
@@ -238,8 +238,13 @@ namespace DG.Tweening.Core
             if (DOTween.useSafeMode) {
                 try {
                     tweenPlugin.EvaluateAndApply(plugOptions, this, isRelative, getter, setter, updatePosition, startValue, changeValue, duration, useInversePosition, updateNotice);
-                } catch {
+                } catch (Exception e) {
                     // Target/field doesn't exist anymore: kill tween
+                    if (Debugger.logPriority >= 1) {
+                        Debugger.LogWarning(string.Format(
+                            "Target or field is missing/null ({0}) ► {1}\n\n{2}\n\n", e.TargetSite, e.Message, e.StackTrace
+                        ), this);
+                    }
                     DOTween.safeModeReport.Add(SafeModeReport.SafeModeReportType.TargetOrFieldMissing);
                     return true;
                 }

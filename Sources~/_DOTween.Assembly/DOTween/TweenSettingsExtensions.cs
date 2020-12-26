@@ -603,13 +603,14 @@ namespace DG.Tweening
         /// and eventually sets the tween's target to that value immediately.</summary>
         /// <param name="fromValue">Value to start from</param>
         /// <param name="setImmediately">If TRUE sets the target to from value immediately, otherwise waits for the tween to start</param>
-        public static TweenerCore<T1,T2,TPlugOptions> From<T1,T2,TPlugOptions>(this TweenerCore<T1,T2,TPlugOptions> t, T2 fromValue, bool setImmediately = true)
-            where TPlugOptions : struct, IPlugOptions
+        public static TweenerCore<T1,T2,TPlugOptions> From<T1,T2,TPlugOptions>(
+            this TweenerCore<T1,T2,TPlugOptions> t, T2 fromValue, bool setImmediately = true, bool isRelative = false
+        ) where TPlugOptions : struct, IPlugOptions
         {
             if (t == null || !t.active || t.creationLocked || !t.isFromAllowed) return t;
 
             t.isFrom = true;
-            t.SetFrom(fromValue, setImmediately);
+            t.SetFrom(fromValue, setImmediately, isRelative);
             return t;
         }
 
@@ -619,12 +620,13 @@ namespace DG.Tweening
         /// and eventually sets the tween's target to that value immediately.</summary>
         /// <param name="fromAlphaValue">Alpha value to start from (in case of Fade tweens)</param>
         /// <param name="setImmediately">If TRUE sets the target to from value immediately, otherwise waits for the tween to start</param>
-        public static TweenerCore<DOColor, DOColor, ColorOptions> From(this TweenerCore<DOColor, DOColor, ColorOptions> t, float fromAlphaValue, bool setImmediately = true)
-        {
+        public static TweenerCore<DOColor, DOColor, ColorOptions> From(
+            this TweenerCore<DOColor, DOColor, ColorOptions> t, float fromAlphaValue, bool setImmediately = true, bool isRelative = false
+        ){
             if (t == null || !t.active || t.creationLocked || !t.isFromAllowed) return t;
 
             t.isFrom = true;
-            t.SetFrom(new Color(0,0,0,fromAlphaValue), setImmediately);
+            t.SetFrom(new Color(0,0,0,fromAlphaValue), setImmediately, isRelative);
             return t;
         }
 
@@ -632,12 +634,13 @@ namespace DG.Tweening
         /// and eventually sets the tween's target to that value immediately.</summary>
         /// <param name="fromValue">Value to start from (in case of Vector tweens that act on a single coordinate or scale tweens)</param>
         /// <param name="setImmediately">If TRUE sets the target to from value immediately, otherwise waits for the tween to start</param>
-        public static TweenerCore<DOVector3, DOVector3, VectorOptions> From(this TweenerCore<DOVector3, DOVector3, VectorOptions> t, float fromValue, bool setImmediately = true)
-        {
+        public static TweenerCore<DOVector3, DOVector3, VectorOptions> From(
+            this TweenerCore<DOVector3, DOVector3, VectorOptions> t, float fromValue, bool setImmediately = true, bool isRelative = false
+        ){
             if (t == null || !t.active || t.creationLocked || !t.isFromAllowed) return t;
 
             t.isFrom = true;
-            t.SetFrom(new Vector3(fromValue, fromValue, fromValue), setImmediately);
+            t.SetFrom(new Vector3(fromValue, fromValue, fromValue), setImmediately, isRelative);
             return t;
         }
 
@@ -648,7 +651,7 @@ namespace DG.Tweening
         /// <summary>Sets a delayed startup for the tween.<para/>
         /// In case of Sequences behaves the same as <see cref="PrependInterval"/>,
         /// which means the delay will repeat in case of loops (while with tweens it's ignored after the first loop cycle).<para/>
-        /// Has no effect on Sequences or if the tween has already started</summary>
+        /// Has no effect if the tween has already started</summary>
         public static T SetDelay<T>(this T t, float delay) where T : Tween
         {
             if (t == null || !t.active || t.creationLocked) return t;
@@ -658,6 +661,25 @@ namespace DG.Tweening
             } else {
                 t.delay = delay;
                 t.delayComplete = delay <= 0;
+            }
+            return t;
+        }
+        /// <summary>EXPERIMENTAL: implemented in v1.2.340.<para/>
+        /// Sets a delayed startup for the tween with options to choose how the delay is applied in case of Sequences.<para/>
+        /// Has no effect if the tween has already started</summary>
+        /// <param name="asPrependedIntervalIfSequence">Only used by <see cref="Sequence"/> types: If FALSE sets the delay as a one-time occurrence
+        /// (defaults to this for <see cref="Tweener"/> types),
+        /// otherwise as a Sequence interval which will repeat at the beginning of every loop cycle</param>
+        public static T SetDelay<T>(this T t, float delay, bool asPrependedIntervalIfSequence) where T : Tween
+        {
+            if (t == null || !t.active || t.creationLocked) return t;
+
+            bool isSequence = t.tweenType == TweenType.Sequence;
+            if (!isSequence || !asPrependedIntervalIfSequence) {
+                t.delay = delay;
+                t.delayComplete = delay <= 0;
+            } else {
+                (t as Sequence).PrependInterval(delay);
             }
             return t;
         }
@@ -896,14 +918,16 @@ namespace DG.Tweening
         public static TweenerCore<Vector3, Path, PathOptions> SetLookAt(
             this TweenerCore<Vector3, Path, PathOptions> t, Vector3 lookAtPosition, Vector3? forwardDirection = null, Vector3? up = null
         )
-        {
-            if (t == null || !t.active) return t;
-
-            t.plugOptions.orientType = OrientType.LookAtPosition;
-            t.plugOptions.lookAtPosition = lookAtPosition;
-            SetPathForwardDirection(t, forwardDirection, up);
-            return t;
-        }
+        { return SetLookAt(t, OrientType.LookAtPosition, lookAtPosition, null, -1, forwardDirection, up); }
+        /// <summary>Additional LookAt options for Path tweens (created via the <code>DOPath</code> shortcut).
+        /// Orients the target towards the given position with options to keep the Z rotation stable.
+        /// Must be chained directly to the tween creation method or to a <code>SetOptions</code></summary>
+        /// <param name="lookAtPosition">The position to look at</param>
+        /// <param name="stableZRotation">If TRUE doesn't rotate the target along the Z axis</param>
+        public static TweenerCore<Vector3, Path, PathOptions> SetLookAt(
+            this TweenerCore<Vector3, Path, PathOptions> t, Vector3 lookAtPosition, bool stableZRotation
+        )
+        { return SetLookAt(t, OrientType.LookAtPosition, lookAtPosition, null, -1, null, null, stableZRotation); }
         /// <summary>Additional LookAt options for Path tweens (created via the <code>DOPath</code> shortcut).
         /// Orients the target towards another transform.
         /// Must be chained directly to the tween creation method or to a <code>SetOptions</code></summary>
@@ -914,14 +938,16 @@ namespace DG.Tweening
         public static TweenerCore<Vector3, Path, PathOptions> SetLookAt(
             this TweenerCore<Vector3, Path, PathOptions> t, Transform lookAtTransform, Vector3? forwardDirection = null, Vector3? up = null
         )
-        {
-            if (t == null || !t.active) return t;
-
-            t.plugOptions.orientType = OrientType.LookAtTransform;
-            t.plugOptions.lookAtTransform = lookAtTransform;
-            SetPathForwardDirection(t, forwardDirection, up);
-            return t;
-        }
+        { return SetLookAt(t, OrientType.LookAtTransform, Vector3.zero, lookAtTransform, -1, forwardDirection, up); }
+        /// <summary>Additional LookAt options for Path tweens (created via the <code>DOPath</code> shortcut).
+        /// Orients the target towards another transform with options to keep the Z rotation stable.
+        /// Must be chained directly to the tween creation method or to a <code>SetOptions</code></summary>
+        /// <param name="lookAtTransform">The transform to look at</param>
+        /// <param name="stableZRotation">If TRUE doesn't rotate the target along the Z axis</param>
+        public static TweenerCore<Vector3, Path, PathOptions> SetLookAt(
+            this TweenerCore<Vector3, Path, PathOptions> t, Transform lookAtTransform, bool stableZRotation
+        )
+        { return SetLookAt(t, OrientType.LookAtTransform, Vector3.zero, lookAtTransform, -1, null, null, stableZRotation); }
         /// <summary>Additional LookAt options for Path tweens (created via the <code>DOPath</code> shortcut).
         /// Orients the target to the path, with the given lookAhead.
         /// Must be chained directly to the tween creation method or to a <code>SetOptions</code></summary>
@@ -932,12 +958,39 @@ namespace DG.Tweening
         public static TweenerCore<Vector3, Path, PathOptions> SetLookAt(
             this TweenerCore<Vector3, Path, PathOptions> t, float lookAhead, Vector3? forwardDirection = null, Vector3? up = null
         )
+        { return SetLookAt(t, OrientType.ToPath, Vector3.zero, null, lookAhead, forwardDirection, up); }
+        /// <summary>Additional LookAt options for Path tweens (created via the <code>DOPath</code> shortcut).
+        /// Orients the path with options to keep the Z rotation stable.
+        /// Must be chained directly to the tween creation method or to a <code>SetOptions</code></summary>
+        /// <param name="lookAhead">The percentage of lookAhead to use (0 to 1)</param>
+        /// <param name="stableZRotation">If TRUE doesn't rotate the target along the Z axis</param>
+        public static TweenerCore<Vector3, Path, PathOptions> SetLookAt(
+            this TweenerCore<Vector3, Path, PathOptions> t, float lookAhead, bool stableZRotation
+        )
+        { return SetLookAt(t, OrientType.ToPath, Vector3.zero, null, lookAhead, null, null, stableZRotation); }
+        static TweenerCore<Vector3, Path, PathOptions> SetLookAt(
+            this TweenerCore<Vector3, Path, PathOptions> t,
+            OrientType orientType, Vector3 lookAtPosition, Transform lookAtTransform, float lookAhead,
+            Vector3? forwardDirection = null, Vector3? up = null, bool stableZRotation = false
+        )
         {
             if (t == null || !t.active) return t;
 
-            t.plugOptions.orientType = OrientType.ToPath;
-            if (lookAhead < PathPlugin.MinLookAhead) lookAhead = PathPlugin.MinLookAhead;
-            t.plugOptions.lookAhead = lookAhead;
+            t.plugOptions.orientType = orientType;
+            switch (orientType) {
+            case OrientType.LookAtPosition:
+                t.plugOptions.lookAtPosition = lookAtPosition;
+                break;
+            case OrientType.LookAtTransform:
+                t.plugOptions.lookAtTransform = lookAtTransform;
+                break;
+            case OrientType.ToPath:
+                if (lookAhead < PathPlugin.MinLookAhead) lookAhead = PathPlugin.MinLookAhead;
+                t.plugOptions.lookAhead = lookAhead;
+                break;
+            }
+            t.plugOptions.lookAtPosition = lookAtPosition;
+            t.plugOptions.stableZRotation = stableZRotation;
             SetPathForwardDirection(t, forwardDirection, up);
             return t;
         }

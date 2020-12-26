@@ -111,6 +111,20 @@ namespace DG.Tweening
 
         #endregion
 
+        // NOTE: up to v1.2.340 Sequences didn't implement this method and delays were always included as prepended intervals
+        internal override float UpdateDelay(float elapsed)
+        {
+            float tweenDelay = delay;
+            if (elapsed > tweenDelay) {
+                // Delay complete
+                elapsedDelay = tweenDelay;
+                delayComplete = true;
+                return elapsed - tweenDelay;
+            }
+            elapsedDelay = elapsed;
+            return 0;
+        }
+
         internal override void Reset()
         {
             base.Reset();
@@ -189,12 +203,11 @@ namespace DG.Tweening
                 newPos = s.duration * EaseManager.Evaluate(s.easeType, s.customEase, newPos, s.duration, s.easeOvershootOrAmplitude, s.easePeriod);
             }
 
-
             float from, to = 0;
             // Determine if prevPos was inverse.
             // Used to calculate correct "from" value when applying internal cycle
             // and also in case of multiple loops within a single update
-            bool prevPosIsInverse = s.loopType == LoopType.Yoyo
+            bool prevPosIsInverse = (s.loops == -1 || s.loops > 1) && s.loopType == LoopType.Yoyo
                 && (prevPos < s.duration ? prevCompletedLoops % 2 != 0 : prevCompletedLoops % 2 == 0);
             if (s.isBackwards) prevPosIsInverse = !prevPosIsInverse;
             // Update multiple loop cycles within the same update
@@ -215,14 +228,14 @@ namespace DG.Tweening
                         to = prevPosIsInverse ? 0 : s.duration;
                         if (ApplyInternalCycle(s, from, to, updateMode, useInversePosition, prevPosIsInverse, true)) return true;
                         cyclesDone++;
-                        if (s.loopType == LoopType.Yoyo) prevPosIsInverse = !prevPosIsInverse;
+                        if (s.hasLoops && s.loopType == LoopType.Yoyo) prevPosIsInverse = !prevPosIsInverse;
                     }
                     // If completedLoops or position were changed by some callback, exit here
 //                    Debug.Log("     Internal Cycle Ended > expecteCompletedLoops/completedLoops: " + expectedCompletedLoops + "/" + s.completedLoops + " - expectedPosition/position: " + expectedPosition + "/" + s.position);
                     if (expectedCompletedLoops != s.completedLoops || Math.Abs(expectedPosition - s.position) > Single.Epsilon) return !s.active;
                 } else {
                     // Simply determine correct prevPosition after steps
-                    if (s.loopType == LoopType.Yoyo && newCompletedSteps % 2 != 0) {
+                    if (s.hasLoops && s.loopType == LoopType.Yoyo && newCompletedSteps % 2 != 0) {
                         prevPosIsInverse = !prevPosIsInverse;
                         prevPos = s.duration - prevPos;
                     }

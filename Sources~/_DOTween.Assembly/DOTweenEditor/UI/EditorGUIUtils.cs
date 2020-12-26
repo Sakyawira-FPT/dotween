@@ -46,7 +46,7 @@ namespace DG.DOTweenEditor.UI
         static Texture2D _logo;
 
         // Filtered ease types to show desired eases in Inspector panels
-        internal static readonly string[] FilteredEaseTypes = new[] {
+        public static readonly string[] FilteredEaseTypes = new[] {
             "Linear",
             "InSine",
             "OutSine",
@@ -78,6 +78,9 @@ namespace DG.DOTweenEditor.UI
             "InBounce",
             "OutBounce",
             "InOutBounce",
+            // Extra custom
+            "Flash", "InFlash", "OutFlash", "InOutFlash",
+            // Curve
             ":: AnimationCurve" // Must be set manually to INTERNAL_Custom
         };
 
@@ -85,14 +88,35 @@ namespace DG.DOTweenEditor.UI
         // PUBLIC METHODS --------------------------------------------------------------------
 
         // Ease popup with filtered eases
-        public static Ease FilteredEasePopup(Ease currEase)
+        public static Ease FilteredEasePopup(string label, Ease currEase, GUIStyle style = null)
+        {
+            if (style == null) style = EditorStyles.popup;
+            Rect area = EditorGUILayout.GetControlRect(label != null, 18, style);
+            return FilteredEasePopup(area, label, currEase, style);
+//            int stringEaseId = currEase == Ease.INTERNAL_Custom
+//                ? FilteredEaseTypes.Length - 1
+//                : Array.IndexOf(FilteredEaseTypes, currEase.ToString());
+//            if (stringEaseId == -1) stringEaseId = 0;
+//            stringEaseId = label == null
+//                ? EditorGUILayout.Popup(stringEaseId, FilteredEaseTypes, style == null ? EditorStyles.popup : style)
+//                : EditorGUILayout.Popup(label, stringEaseId, FilteredEaseTypes, style == null ? EditorStyles.popup : style);
+//            return stringEaseId == FilteredEaseTypes.Length - 1
+//                ? Ease.INTERNAL_Custom
+//                : (Ease)Enum.Parse(typeof(Ease), FilteredEaseTypes[stringEaseId]);
+        }
+        // Ease popup with filtered eases
+        public static Ease FilteredEasePopup(Rect rect, string label, Ease currEase, GUIStyle style = null)
         {
             int stringEaseId = currEase == Ease.INTERNAL_Custom
                 ? FilteredEaseTypes.Length - 1
                 : Array.IndexOf(FilteredEaseTypes, currEase.ToString());
             if (stringEaseId == -1) stringEaseId = 0;
-            stringEaseId = EditorGUILayout.Popup("Ease", stringEaseId, FilteredEaseTypes);
-            return stringEaseId == FilteredEaseTypes.Length - 1 ? Ease.INTERNAL_Custom : (Ease)Enum.Parse(typeof(Ease), FilteredEaseTypes[stringEaseId]);
+            stringEaseId = label == null
+                ? EditorGUI.Popup(rect, stringEaseId, FilteredEaseTypes, style == null ? EditorStyles.popup : style)
+                : EditorGUI.Popup(rect, label, stringEaseId, FilteredEaseTypes, style == null ? EditorStyles.popup : style);
+            return stringEaseId == FilteredEaseTypes.Length - 1
+                ? Ease.INTERNAL_Custom
+                : (Ease)Enum.Parse(typeof(Ease), FilteredEaseTypes[stringEaseId]);
         }
 
         public static void InspectorLogo()
@@ -126,7 +150,7 @@ namespace DG.DOTweenEditor.UI
                 btImgStyle.normal.background = null;
                 btImgStyle.imagePosition = ImagePosition.ImageOnly;
                 btImgStyle.padding = new RectOffset(0, 0, 0, 0);
-                btImgStyle.fixedWidth = footerSizeV.x;
+//                btImgStyle.fixedWidth = footerSizeV.x;
                 btImgStyle.fixedHeight = footerSizeV.y;
             }
 

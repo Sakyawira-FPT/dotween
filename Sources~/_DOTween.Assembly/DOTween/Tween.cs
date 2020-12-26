@@ -67,7 +67,7 @@ namespace DG.Tweening
         internal float duration;
         internal int loops;
         internal LoopType loopType;
-        // Tweeners-only (shared by Sequences only for compatibility reasons, otherwise not used)
+        // NOW USED BY SEQUENCES TOO (since v1.2.340)
         internal float delay;
         /// <summary>Tweeners-only (ignored by Sequences), returns TRUE if the tween was set as relative</summary>
         public bool isRelative { get; internal set; } // Required by Modules
@@ -100,6 +100,8 @@ namespace DG.Tweening
 
         /// <summary>Gets and sets the time position (loops included, delays excluded) of the tween</summary>
         public float fullPosition { get { return this.Elapsed(true); } set { this.Goto(value, this.isPlaying); } }
+        /// <summary>Returns TRUE if the tween is set to loop (either a set number of times or infinitely)</summary>
+        public bool hasLoops { get { return loops == -1 || loops > 1; } }
 
         internal bool creationLocked; // TRUE after the tween was updated the first time (even if it was delayed), or when added to a Sequence
         internal bool startupDone; // TRUE the first time the actual tween starts, AFTER any delay has elapsed (unless it's a FROM tween)
@@ -172,7 +174,8 @@ namespace DG.Tweening
 
         // Called by TweenManager in case a tween has a delay that needs to be updated.
         // Returns the eventual time in excess compared to the tween's delay time.
-        // Shared also by Sequences even if they don't use it, in order to make it compatible with Tween.
+        // Previously unused by Sequences but now implemented.
+        // NOT TRUE ANYMORE: Shared also by Sequences even if they don't use it, in order to make it compatible with Tween.
         internal virtual float UpdateDelay(float elapsed) { return 0; }
 
         // Called the moment the tween starts.
@@ -248,7 +251,7 @@ namespace DG.Tweening
             }
 
             // updatePosition is different in case of Yoyo loop under certain circumstances
-            bool useInversePosition = t.loopType == LoopType.Yoyo
+            bool useInversePosition = t.hasLoops && t.loopType == LoopType.Yoyo
                 && (t.position < t.duration ? t.completedLoops % 2 != 0 : t.completedLoops % 2 == 0);
 
             // Get values from plugin and set them
@@ -267,7 +270,10 @@ namespace DG.Tweening
                 OnTweenCallback(t.onRewind, t);
             }
             if (newCompletedSteps > 0 && updateMode == UpdateMode.Update && t.onStepComplete != null) {
-                for (int i = 0; i < newCompletedSteps; ++i) OnTweenCallback(t.onStepComplete, t);
+                for (int i = 0; i < newCompletedSteps; ++i) {
+                    OnTweenCallback(t.onStepComplete, t);
+                    if (!t.active) break; // A stepComplete killed the tween
+                }
             }
             if (t.isComplete && !wasComplete && updateMode != UpdateMode.IgnoreOnComplete && t.onComplete != null) {
                 OnTweenCallback(t.onComplete, t);

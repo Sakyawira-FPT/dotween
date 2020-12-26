@@ -29,7 +29,7 @@ namespace DG.Tweening.Plugins
         }
 
         public override void SetFrom(TweenerCore<Vector3, Path, PathOptions> t, bool isRelative) {}
-        public override void SetFrom(TweenerCore<Vector3, Path, PathOptions> t, Path fromValue, bool setImmediately) {}
+        public override void SetFrom(TweenerCore<Vector3, Path, PathOptions> t, Path fromValue, bool setImmediately, bool isRelative) {}
 
         public static ABSTweenPlugin<Vector3, Path, PathOptions> Get()
         {
@@ -140,9 +140,9 @@ namespace DG.Tweening.Plugins
                     // If more than one waypoint changed, dispatch multiple callbacks
 //                    bool isBackwards = newWaypointIndex < prevWPIndex;
                     bool isBackwards = t.isBackwards;
-                    if (t.loopType == LoopType.Yoyo) {
-                        isBackwards = !t.isBackwards && t.loops > 1 && t.completedLoops % 2 != 0
-                                      || t.isBackwards && t.loops > 1 && t.completedLoops % 2 == 0;
+                    if (t.hasLoops && t.loopType == LoopType.Yoyo) {
+                        isBackwards = !t.isBackwards && t.completedLoops % 2 != 0
+                                      || t.isBackwards && t.completedLoops % 2 == 0;
                     }
                     if (isBackwards) {
 //                        for (int i = prevWPIndex - 1; i > newWaypointIndex - 1; --i) Tween.OnTweenCallback(t.onWaypointChange, i);
@@ -170,12 +170,14 @@ namespace DG.Tweening.Plugins
             switch (options.orientType) {
             case OrientType.LookAtPosition:
                 path.lookAtPosition = options.lookAtPosition; // Used to draw editor gizmos
-                newRot = Quaternion.LookRotation(options.lookAtPosition - trans.position, trans.up);
+//                newRot = Quaternion.LookRotation(options.lookAtPosition - trans.position, trans.up);
+                newRot = Quaternion.LookRotation(options.lookAtPosition - trans.position, options.stableZRotation ? Vector3.up : trans.up);
                 break;
             case OrientType.LookAtTransform:
                 if (options.lookAtTransform != null) {
                     path.lookAtPosition = options.lookAtTransform.position; // Used to draw editor gizmos
-                    newRot = Quaternion.LookRotation(options.lookAtTransform.position - trans.position, trans.up);
+//                    newRot = Quaternion.LookRotation(options.lookAtTransform.position - trans.position, trans.up);
+                    newRot = Quaternion.LookRotation(options.lookAtTransform.position - trans.position, options.stableZRotation ? Vector3.up : trans.up);
                 }
                 break;
             case OrientType.ToPath:
