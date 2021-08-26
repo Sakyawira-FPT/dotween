@@ -2,7 +2,7 @@
   "name": "com.demigiant.dotween",
   "displayName": "DOTween",
   "description": "A Unity C# animation/tween engine. HOTween v2.",
-  "version": "1.2.42",
+  "version": "1.2.632",
   "author": "Daniele Giardini",
   "type": "library"
 }
