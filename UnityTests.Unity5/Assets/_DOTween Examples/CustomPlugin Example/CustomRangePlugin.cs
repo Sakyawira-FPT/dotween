@@ -67,8 +67,8 @@ public class CustomRangePlugin : ABSTweenPlugin<CustomRange, CustomRange, NoOpti
         float elapsed, CustomRange startValue, CustomRange changeValue, float duration, bool usingInversePosition, int newCompletedSteps,
         UpdateNotice updateNotice
     ){
-        float easeVal = EaseManager.Evaluate(t, elapsed, duration, t.easeOvershootOrAmplitude, t.easePeriod);
-
+        float easeVal = EaseManager.EvaluateUnclamped(t, elapsed, duration, t.easeOvershootOrAmplitude, t.easePeriod);
+        
         // Here I use startValue directly because CustomRange a struct, so it won't reference the original.
         // If CustomRange was a class, I should create a new one to pass to the setter
         startValue.min += changeValue.min * easeVal;

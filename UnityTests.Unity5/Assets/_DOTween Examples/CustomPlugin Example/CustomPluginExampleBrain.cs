@@ -5,6 +5,9 @@ using UnityEngine.UI;
 
 public class CustomPluginExampleBrain : MonoBehaviour
 {
+	public float duration = 2;
+	public LoopType loopType = LoopType.Restart;
+	public int loops = 1;
     public Text txtCustomRange ; // Used to show the custom range tween results
 
 	CustomRange customRange = new CustomRange(0, 10);
@@ -17,11 +20,13 @@ public class CustomPluginExampleBrain : MonoBehaviour
 	{
         // The difference with the regular generic way is simply
         // that you have to pass the plugin to use as an additional first parameter
-	    DOTween.To(customRangePlugin, () => customRange, x => customRange = x, new CustomRange(20, 100), 4);
+        DOTween.Sequence().SetLoops(2, LoopType.Yoyo)
+	        .Join(DOTween.To(customRangePlugin, () => customRange, x => customRange = x, new CustomRange(20, 100), duration).SetEase(Ease.Linear).SetLoops(loops, loopType));
+	    // DOTween.To(customRangePlugin, () => customRange, x => customRange = x, new CustomRange(20, 100), duration).SetEase(Ease.Linear).SetLoops(loops, loopType);
 	}
 
     void Update()
     {
-        txtCustomRange.text = customRange.min + "\n" + customRange.max;
+        txtCustomRange.text = Mathf.RoundToInt(customRange.min) + "\n" + Mathf.RoundToInt(customRange.max);
     }
 }

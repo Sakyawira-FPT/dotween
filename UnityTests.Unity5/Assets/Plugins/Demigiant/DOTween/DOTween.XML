@@ -123,7 +123,14 @@
         </member>
         <member name="M:DG.Tweening.Core.Easing.EaseManager.Evaluate(DG.Tweening.Tween,System.Single,System.Single,System.Single,System.Single)">
             <summary>
-            Returns a value between 0 and 1 (inclusive) based on the elapsed time and ease selected
+            Returns a value between 0 and 1 (inclusive) based on the elapsed time and ease selected.
+            Use this method if you don't care about <see cref="F:DG.Tweening.LoopType.Incremental"/>, otherwise use <see cref="M:DG.Tweening.Core.Easing.EaseManager.EvaluateUnclamped(DG.Tweening.Tween,System.Single,System.Single,System.Single,System.Single)"/>
+            </summary>
+        </member>
+        <member name="M:DG.Tweening.Core.Easing.EaseManager.EvaluateUnclamped(DG.Tweening.Tween,System.Single,System.Single,System.Single,System.Single)">
+            <summary>
+            USE THIS FOR CUSTOM PLUGINS when you want to be able to use <see cref="F:DG.Tweening.LoopType.Incremental"/>.
+            Returns a value that is from 0 to 1 if <see cref="T:DG.Tweening.LoopType"/> is not incremental, otherwise from 0 to (1 * completed loops)
             </summary>
         </member>
         <member name="M:DG.Tweening.Core.Easing.EaseManager.Evaluate(DG.Tweening.Ease,DG.Tweening.EaseFunction,System.Single,System.Single,System.Single,System.Single)">

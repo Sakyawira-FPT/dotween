@@ -48,12 +48,29 @@ namespace DG.Tweening.Core.Easing
         const float _TwoPi = Mathf.PI * 2;
 
         /// <summary>
-        /// Returns a value between 0 and 1 (inclusive) based on the elapsed time and ease selected
+        /// Returns a value between 0 and 1 (inclusive) based on the elapsed time and ease selected.
+        /// Use this method if you don't care about <see cref="LoopType.Incremental"/>, otherwise use <see cref="EvaluateUnclamped"/>
         /// </summary>
         public static float Evaluate(Tween t, float time, float duration, float overshootOrAmplitude, float period)
         {
             // Overload used only to allow custom user plugins to avoid calling t.easeType and t.customEase since they're internal
             return Evaluate(t.easeType, t.customEase, time, duration, overshootOrAmplitude, period);
+        }
+        
+        /// <summary>
+        /// USE THIS FOR CUSTOM PLUGINS when you want to be able to use <see cref="LoopType.Incremental"/>.
+        /// Returns a value that is from 0 to 1 if <see cref="LoopType"/> is not incremental, otherwise from 0 to (1 * completed loops)
+        /// </summary>
+        public static float EvaluateUnclamped(Tween t, float time, float duration, float overshootOrAmplitude, float period)
+        {
+            // Overload used only to allow custom user plugins to avoid calling t.easeType, t.customEase and other internal properties
+            float easeVal = Evaluate(t.easeType, t.customEase, time, duration, overshootOrAmplitude, period);
+            if (t.loopType == LoopType.Incremental) easeVal += t.isComplete ? t.completedLoops - 1 : t.completedLoops;
+            if (t.isSequenced && t.sequenceParent.loopType == LoopType.Incremental) {
+                easeVal += (t.loopType == LoopType.Incremental ? t.loops : 1) * (t.sequenceParent.isComplete ? t.sequenceParent.completedLoops - 1 : t.sequenceParent.completedLoops);
+            }
+
+            return easeVal;
         }
 
         /// <summary>
